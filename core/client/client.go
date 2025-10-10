@@ -10,7 +10,6 @@ import (
 type Client struct {
 	host string
 	port string
-
 	conn net.Conn
 }
 
@@ -51,6 +50,8 @@ func (c *Client) Send(message string) error {
 }
 
 func receive(conn net.Conn, ch chan string) error {
+	defer conn.Close()
+
 	for {
 		data, err := bufio.NewReader(conn).ReadString('\n')
 		if err != nil {
