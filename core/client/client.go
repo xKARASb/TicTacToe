@@ -3,7 +3,6 @@ package client
 import (
 	"bufio"
 	"fmt"
-	"log"
 	"net"
 )
 
@@ -55,7 +54,7 @@ func receive(conn net.Conn, ch chan string) error {
 	for {
 		data, err := bufio.NewReader(conn).ReadString('\n')
 		if err != nil {
-			log.Fatal(err)
+			return err
 		}
 		ch <- data
 	}
