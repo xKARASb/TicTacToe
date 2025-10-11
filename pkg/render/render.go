@@ -8,34 +8,33 @@ import (
 )
 
 type Window struct {
-	clear func()
+	Clear func()
 }
 
 func NewWindow() *Window {
-
 	if runtime.GOOS == "Operating System: windows" {
 		return &Window{
-			ClearWindows,
+			clearWindows,
 		}
 	} else {
 		return &Window{
-			ClearUnix,
+			clearUnix,
 		}
 	}
 }
 
-func ClearWindows() {
+func clearWindows() {
 	cmd := exec.Command("cmd", "/c", "cls")
 	cmd.Stdout = os.Stdout
 	cmd.Run()
 }
-func ClearUnix() {
+func clearUnix() {
 	cmd := exec.Command("clear")
 	cmd.Stdout = os.Stdout
 	cmd.Run()
 }
 
-func DrawField(field [3][3]string, turn bool) {
+func (*Window) DrawField(field [3][3]string, turn bool) {
 	fmt.Println("\n    1   2   3")
 	for i, row := range field {
 		fmt.Printf("  -------------\n")
@@ -57,6 +56,6 @@ func DrawField(field [3][3]string, turn bool) {
 	}
 
 }
-func DrawText(text string) {
+func (*Window) DrawText(text string) {
 	fmt.Print(text)
 }
