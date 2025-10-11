@@ -46,5 +46,11 @@ func CheckResult(field *[3][3]string) string {
 }
 
 func Validate(field *[3][3]string, x, y int) bool {
+	if x < 0 || x > 2 {
+		return false
+	}
+	if y < 0 || y > 2 {
+		return false
+	}
 	return field[x][y] == ""
 }
