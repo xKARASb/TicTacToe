@@ -71,3 +71,8 @@ func ParseCellMsg(msg string, field *[3][3]string) (*[3][3]string, error) {
 	field[x][y] = args[1]
 	return field, nil
 }
+
+func ParseCommand(msg string) string {
+	args := strings.Split(msg, " ")
+	return args[0]
+}
