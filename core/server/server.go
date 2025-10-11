@@ -30,6 +30,9 @@ func (s *GameServer) StartServer(cmd chan string) error {
 	if err != nil {
 		return err
 	}
+
+	s.listener = listener
+
 	for {
 
 		conn, err := listener.Accept()
