@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"net"
+	"strings"
 )
 
 type Client struct {
@@ -56,6 +57,6 @@ func receive(conn net.Conn, ch chan string) error {
 		if err != nil {
 			return err
 		}
-		ch <- data
+		ch <- strings.Replace(data, "\n", "", 1)
 	}
 }
