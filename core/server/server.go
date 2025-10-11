@@ -7,14 +7,15 @@ import (
 )
 
 type GameServer struct {
-	host string
-	port int
-	conn net.Conn
+	host     string
+	port     int
+	conn     net.Conn
+	listener net.Listener
 }
 
 func NewGameServer(host string, port int) *GameServer {
 	return &GameServer{
-		host, port, nil,
+		host, port, nil, nil,
 	}
 }
 
@@ -50,6 +51,10 @@ func handleConnection(conn net.Conn, ch chan string) {
 		}
 		ch <- data
 	}
+}
+
+func (s *GameServer) GetAddr() string {
+	return s.listener.Addr().String()
 }
 
 func (s *GameServer) Send(msg string) error {
