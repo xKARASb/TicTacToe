@@ -26,20 +26,18 @@ func (s *GameServer) StartServer(cmd chan string) error {
 		return err
 	}
 
-	listener, err := net.ListenTCP("tcp", tcpAddr)
+	s.listener, err = net.ListenTCP("tcp", tcpAddr)
 	if err != nil {
 		return err
 	}
 
-	s.listener = listener
-
 	for {
 
-		conn, err := listener.Accept()
+		s.conn, err = s.listener.Accept()
 		if err != nil {
 			fmt.Println(err)
 		}
-		handleConnection(conn, cmd)
+		handleConnection(s.conn, cmd)
 	}
 }
 
