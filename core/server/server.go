@@ -58,6 +58,13 @@ func (s *GameServer) GetAddr() string {
 	return s.listener.Addr().String()
 }
 
+func (s *GameServer) IsListening() bool {
+	return s.listener != nil
+}
+func (s *GameServer) IsConnected() bool {
+	return s.conn != nil
+}
+
 func (s *GameServer) Send(msg string) error {
 	if _, err := s.conn.Write([]byte(msg)); err != nil {
 		return err
