@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"net"
+	"strings"
 )
 
 type GameServer struct {
@@ -50,7 +51,7 @@ func handleConnection(conn net.Conn, ch chan string) {
 			fmt.Println(err)
 			return
 		}
-		ch <- data
+		ch <- strings.Replace(data, "\n", "", 1)
 	}
 }
 
