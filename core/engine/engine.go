@@ -33,7 +33,9 @@ func StartGame(host string, port int) error {
 			return
 		}
 	}()
-
+	for !srv.IsListening() {
+	}
+	fmt.Println(srv.GetAddr())
 	go func() {
 		err := <-errChan
 		if err != nil {
@@ -48,6 +50,8 @@ func StartGame(host string, port int) error {
 		secondMark = "X"
 	}
 
+	for !srv.IsConnected() {
+	}
 	err := srv.Send(transport.SetPlayerMsg(secondMark))
 	if err != nil {
 		return err
@@ -108,13 +112,16 @@ func Proccess(ch chan string, errCh chan error, player *Player) {
 	if player.mark == "X" {
 		turn = true
 	}
-
-	go UserInput(&turn, &field, player, errCh)
+	player.render.DrawField(field, turn)
+	if turn {
+		UserInput(&turn, &field, player, errCh)
+		player.render.Clear()
+		player.render.DrawField(field, turn)
+	}
 
 	for {
 		select {
 		case msg := <-ch:
-			player.render.DrawField(field, turn)
 			command := transport.ParseCommand(msg)
 			switch command {
 			case "cell":
@@ -122,11 +129,47 @@ func Proccess(ch chan string, errCh chan error, player *Player) {
 				if err != nil {
 					errCh <- err
 				}
-				turn = true
-			}
 
-		default:
-			player.render.DrawField(field, turn)
+				turn = true
+				player.render.Clear()
+				player.render.DrawField(field, turn)
+
+				res := game.CheckResult(&field)
+				switch res {
+				case player.mark:
+					player.render.DrawText("Victory\n")
+					err := player.buddy.Send(transport.EndGame + "\n")
+					if err != nil {
+						errCh <- err
+					}
+				case "draw":
+					player.render.DrawText("Draw\n")
+					err := player.buddy.Send(transport.EndGame + "\n")
+					if err != nil {
+						errCh <- err
+					}
+				case "ongoing":
+					UserInput(&turn, &field, player, errCh)
+					player.render.Clear()
+					player.render.DrawField(field, turn)
+				default:
+					player.render.DrawText("Lose\n")
+					err := player.buddy.Send(transport.EndGame + "\n")
+					if err != nil {
+						errCh <- err
+					}
+				}
+			case transport.EndGame:
+				res := game.CheckResult(&field)
+				switch res {
+				case player.mark:
+					player.render.DrawText("Victory\n")
+				case "draw":
+					player.render.DrawText("Draw\n")
+				default:
+					player.render.DrawText("Lose\n")
+				}
+			}
 		}
 	}
 
@@ -137,24 +180,24 @@ func UserInput(turn *bool, field *[3][3]string, player *Player, errChan chan err
 		x, y int
 	)
 	for {
-		if *turn {
-			fmt.Println("Enter X:")
-			fmt.Scanln(&x)
-			x--
+		fmt.Print("Enter X: ")
+		fmt.Scan(&x)
+		fmt.Print("Enter Y: ")
+		fmt.Scan(&y)
+		x--
+		y--
 
-			fmt.Println("Enter Y:")
-			fmt.Scanln(&y)
-			y--
-
-			if game.Validate(field, x, y) {
-				err := player.buddy.Send(transport.CellMsg(player.mark, x, y))
-				if err != nil {
-					errChan <- err
-				}
-
-				field[x][y] = player.mark
-				*turn = false
+		if game.Validate(field, x, y) {
+			err := player.buddy.Send(transport.CellMsg(player.mark, x, y))
+			if err != nil {
+				errChan <- err
 			}
+
+			field[x][y] = player.mark
+			*turn = false
+			break
+		} else {
+			fmt.Println("Invalid input")
 		}
 	}
 }
