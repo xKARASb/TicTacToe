@@ -12,7 +12,7 @@ type Window struct {
 }
 
 func NewWindow() *Window {
-	if runtime.GOOS == "Operating System: windows" {
+	if runtime.GOOS == "windows" {
 		return &Window{
 			clearWindows,
 		}
@@ -50,6 +50,31 @@ func (*Window) DrawField(field [3][3]string, player string) {
 	}
 	fmt.Println("  -------------")
 }
-func (*Window) DrawText(text string) {
+func (*Window) drawText(text string) {
 	fmt.Print(text)
+}
+
+func (c *Window) Victory() {
+	c.drawText("Победа!\n")
+}
+func (c *Window) Loose() {
+	c.drawText("Проигрыш(\n")
+}
+func (c *Window) Draw() {
+	c.drawText("Ничья...\n")
+}
+func (c *Window) Turn() {
+	c.drawText("Твой ход!\n")
+}
+
+func (c *Window) InputCoord(isX bool) {
+	if isX {
+		c.drawText("Введи ряд: ")
+	} else {
+		c.drawText("Введи столбец: ")
+	}
+}
+
+func (c *Window) IncorrcetInput() {
+	c.drawText("Не вернный ввод!\n")
 }

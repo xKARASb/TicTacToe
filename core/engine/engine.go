@@ -137,13 +137,13 @@ func Proccess(ch chan string, errCh chan error, player *Player) {
 			res := game.CheckResult(&field)
 			switch res {
 			case player.mark:
-				player.render.DrawText("Победа!\n")
+				player.render.Victory()
 				err := player.buddy.Send(transport.EndGame + "\n")
 				if err != nil {
 					errCh <- err
 				}
 			case "draw":
-				player.render.DrawText("Ничья!\n")
+				player.render.Draw()
 				err := player.buddy.Send(transport.EndGame + "\n")
 				if err != nil {
 					errCh <- err
@@ -153,7 +153,7 @@ func Proccess(ch chan string, errCh chan error, player *Player) {
 				player.render.Clear()
 				player.render.DrawField(field, player.mark)
 			default:
-				player.render.DrawText("Поражение(\n")
+				player.render.Loose()
 				err := player.buddy.Send(transport.EndGame + "\n")
 				if err != nil {
 					errCh <- err
@@ -163,11 +163,11 @@ func Proccess(ch chan string, errCh chan error, player *Player) {
 			res := game.CheckResult(&field)
 			switch res {
 			case player.mark:
-				player.render.DrawText("Победа!\n")
+				player.render.Victory()
 			case "draw":
-				player.render.DrawText("Ничья!\n")
+				player.render.Draw()
 			default:
-				player.render.DrawText("Поражение(\n")
+				player.render.Loose()
 			}
 		}
 	}
@@ -178,10 +178,10 @@ func UserInput(turn *bool, field *[3][3]string, player *Player, errChan chan err
 		x, y int
 	)
 	for {
-		player.render.DrawText("Твой ход!\n")
-		player.render.DrawText("Введи ряд: ")
+		player.render.Turn()
+		player.render.InputCoord(true)
 		fmt.Scan(&x)
-		player.render.DrawText("Введи столбец: ")
+		player.render.InputCoord(false)
 		fmt.Scan(&y)
 		x--
 		y--
@@ -196,7 +196,7 @@ func UserInput(turn *bool, field *[3][3]string, player *Player, errChan chan err
 			*turn = false
 			break
 		} else {
-			player.render.DrawText("Не верный ввод\n")
+			player.render.IncorrcetInput()
 		}
 	}
 }
