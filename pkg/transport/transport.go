@@ -15,7 +15,7 @@ const (
 )
 
 func SetPlayerMsg(player string) string {
-	return fmt.Sprintf("you %s\n", player)
+	return fmt.Sprintf("you %s", player)
 }
 func ParseSetPlayerMsg(msg string) (string, error) {
 	args := strings.Split(msg, " ")
@@ -31,7 +31,7 @@ func ParseSetPlayerMsg(msg string) (string, error) {
 }
 
 func CellMsg(player string, x, y int) string {
-	return fmt.Sprintf("cell %s %d %d\n", player, x, y)
+	return fmt.Sprintf("cell %s %d %d", player, x, y)
 }
 
 func ParseCellMsg(msg string, field *[3][3]string) (*[3][3]string, error) {

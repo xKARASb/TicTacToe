@@ -138,13 +138,13 @@ func Proccess(ch chan string, errCh chan error, player *Player) {
 			switch res {
 			case player.mark:
 				player.render.Victory()
-				err := player.buddy.Send(transport.EndGame + "\n")
+				err := player.buddy.Send(transport.EndGame)
 				if err != nil {
 					errCh <- err
 				}
 			case "draw":
 				player.render.Draw()
-				err := player.buddy.Send(transport.EndGame + "\n")
+				err := player.buddy.Send(transport.EndGame)
 				if err != nil {
 					errCh <- err
 				}
@@ -154,7 +154,7 @@ func Proccess(ch chan string, errCh chan error, player *Player) {
 				player.render.DrawField(field, player.mark)
 			default:
 				player.render.Loose()
-				err := player.buddy.Send(transport.EndGame + "\n")
+				err := player.buddy.Send(transport.EndGame)
 				if err != nil {
 					errCh <- err
 				}

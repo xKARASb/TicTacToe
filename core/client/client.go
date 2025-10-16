@@ -41,7 +41,7 @@ func (c *Client) Connect(ch chan string) error {
 }
 
 func (c *Client) Send(message string) error {
-	_, err := c.conn.Write([]byte(message))
+	_, err := c.conn.Write([]byte(message + "\n"))
 	if err != nil {
 		return err
 	}

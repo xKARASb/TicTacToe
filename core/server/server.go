@@ -67,7 +67,7 @@ func (s *GameServer) IsConnected() bool {
 }
 
 func (s *GameServer) Send(msg string) error {
-	if _, err := s.conn.Write([]byte(msg)); err != nil {
+	if _, err := s.conn.Write([]byte(msg + "\n")); err != nil {
 		return err
 	}
 	return nil
