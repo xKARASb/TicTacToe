@@ -2,12 +2,13 @@ package main
 
 import (
 	"fmt"
-	"github.com/xkarasb/TicTacToe/core/engine"
 	"strings"
+
+	"github.com/xkarasb/TicTacToe/core/engine"
 )
 
 func main() {
-	fmt.Println("Hello\nChoose number:\n1. Host\n2. Connect")
+	fmt.Println("Привет!\nВыбери число:\n1. Быть хостом\n2. Присоединиться")
 	var choice int
 	fmt.Scan(&choice)
 	switch choice {
@@ -17,7 +18,7 @@ func main() {
 			fmt.Println(err)
 		}
 	case 2:
-		fmt.Println("Enter address:")
+		fmt.Println("Введите адресс хоста:")
 		var address string
 		fmt.Scan(&address)
 		host, port := strings.Split(address, ":")[0], strings.Split(address, ":")[1]

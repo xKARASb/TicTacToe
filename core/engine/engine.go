@@ -2,12 +2,13 @@ package engine
 
 import (
 	"fmt"
+	"math/rand"
+
 	"github.com/xkarasb/TicTacToe/core/client"
 	"github.com/xkarasb/TicTacToe/core/game"
 	"github.com/xkarasb/TicTacToe/core/server"
 	"github.com/xkarasb/TicTacToe/pkg/render"
 	"github.com/xkarasb/TicTacToe/pkg/transport"
-	"math/rand"
 )
 
 type Player struct {
@@ -112,67 +113,64 @@ func Proccess(ch chan string, errCh chan error, player *Player) {
 	if player.mark == "X" {
 		turn = true
 	}
-	player.render.DrawField(field, turn)
+	player.render.DrawField(field, player.mark)
 	if turn {
 		UserInput(&turn, &field, player, errCh)
 		player.render.Clear()
-		player.render.DrawField(field, turn)
+		player.render.DrawField(field, player.mark)
 	}
 
 	for {
-		select {
-		case msg := <-ch:
-			command := transport.ParseCommand(msg)
-			switch command {
-			case "cell":
-				_, err := transport.ParseCellMsg(msg, &field)
+		msg := <-ch
+		command := transport.ParseCommand(msg)
+		switch command {
+		case "cell":
+			_, err := transport.ParseCellMsg(msg, &field)
+			if err != nil {
+				errCh <- err
+			}
+
+			turn = true
+			player.render.Clear()
+			player.render.DrawField(field, player.mark)
+
+			res := game.CheckResult(&field)
+			switch res {
+			case player.mark:
+				player.render.DrawText("Победа!\n")
+				err := player.buddy.Send(transport.EndGame + "\n")
 				if err != nil {
 					errCh <- err
 				}
-
-				turn = true
+			case "draw":
+				player.render.DrawText("Ничья!\n")
+				err := player.buddy.Send(transport.EndGame + "\n")
+				if err != nil {
+					errCh <- err
+				}
+			case "ongoing":
+				UserInput(&turn, &field, player, errCh)
 				player.render.Clear()
-				player.render.DrawField(field, turn)
-
-				res := game.CheckResult(&field)
-				switch res {
-				case player.mark:
-					player.render.DrawText("Victory\n")
-					err := player.buddy.Send(transport.EndGame + "\n")
-					if err != nil {
-						errCh <- err
-					}
-				case "draw":
-					player.render.DrawText("Draw\n")
-					err := player.buddy.Send(transport.EndGame + "\n")
-					if err != nil {
-						errCh <- err
-					}
-				case "ongoing":
-					UserInput(&turn, &field, player, errCh)
-					player.render.Clear()
-					player.render.DrawField(field, turn)
-				default:
-					player.render.DrawText("Lose\n")
-					err := player.buddy.Send(transport.EndGame + "\n")
-					if err != nil {
-						errCh <- err
-					}
+				player.render.DrawField(field, player.mark)
+			default:
+				player.render.DrawText("Поражение(\n")
+				err := player.buddy.Send(transport.EndGame + "\n")
+				if err != nil {
+					errCh <- err
 				}
-			case transport.EndGame:
-				res := game.CheckResult(&field)
-				switch res {
-				case player.mark:
-					player.render.DrawText("Victory\n")
-				case "draw":
-					player.render.DrawText("Draw\n")
-				default:
-					player.render.DrawText("Lose\n")
-				}
+			}
+		case transport.EndGame:
+			res := game.CheckResult(&field)
+			switch res {
+			case player.mark:
+				player.render.DrawText("Победа!\n")
+			case "draw":
+				player.render.DrawText("Ничья!\n")
+			default:
+				player.render.DrawText("Поражение(\n")
 			}
 		}
 	}
-
 }
 
 func UserInput(turn *bool, field *[3][3]string, player *Player, errChan chan error) {
@@ -180,9 +178,10 @@ func UserInput(turn *bool, field *[3][3]string, player *Player, errChan chan err
 		x, y int
 	)
 	for {
-		fmt.Print("Enter X: ")
+		player.render.DrawText("Твой ход!\n")
+		player.render.DrawText("Введи ряд: ")
 		fmt.Scan(&x)
-		fmt.Print("Enter Y: ")
+		player.render.DrawText("Введи столбец: ")
 		fmt.Scan(&y)
 		x--
 		y--
@@ -197,7 +196,7 @@ func UserInput(turn *bool, field *[3][3]string, player *Player, errChan chan err
 			*turn = false
 			break
 		} else {
-			fmt.Println("Invalid input")
+			player.render.DrawText("Не верный ввод\n")
 		}
 	}
 }

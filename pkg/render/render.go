@@ -34,8 +34,8 @@ func clearUnix() {
 	cmd.Run()
 }
 
-func (*Window) DrawField(field [3][3]string, turn bool) {
-	fmt.Println("\n    1   2   3")
+func (*Window) DrawField(field [3][3]string, player string) {
+	fmt.Printf("\n%s    1   2   3\n", player)
 	for i, row := range field {
 		fmt.Printf("  -------------\n")
 		fmt.Printf("%d ", i+1)
@@ -49,12 +49,6 @@ func (*Window) DrawField(field [3][3]string, turn bool) {
 		fmt.Println("|")
 	}
 	fmt.Println("  -------------")
-	if turn {
-		fmt.Printf("Твой ход!\nКуда ставишь? ")
-	} else {
-		fmt.Printf("Ход противника\n")
-	}
-
 }
 func (*Window) DrawText(text string) {
 	fmt.Print(text)
