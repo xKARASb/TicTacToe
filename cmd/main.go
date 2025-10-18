@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/xkarasb/TicTacToe/core/engine"
@@ -13,7 +14,7 @@ func main() {
 	fmt.Scan(&choice)
 	switch choice {
 	case 1:
-		err := engine.StartGame("localhost", 0)
+		err := engine.StartGame("localhost", 50050)
 		if err != nil {
 			fmt.Println(err)
 		}
@@ -21,7 +22,9 @@ func main() {
 		fmt.Println("Введите адресс хоста:")
 		var address string
 		fmt.Scan(&address)
-		host, port := strings.Split(address, ":")[0], strings.Split(address, ":")[1]
+		parsedAddress := strings.Split(address, ":")
+		host := parsedAddress[0]
+		port, _ := strconv.Atoi(parsedAddress[1])
 		err := engine.JoinGame(host, port)
 		if err != nil {
 			fmt.Println(err)

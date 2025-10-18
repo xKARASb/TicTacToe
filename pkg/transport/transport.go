@@ -12,6 +12,7 @@ const (
 	YouTurn    = "yturn"
 	StartGame  = "start"
 	EndGame    = "end"
+	Restart    = "restart"
 )
 
 func SetPlayerMsg(player string) string {

@@ -9,11 +9,11 @@ import (
 
 type Client struct {
 	host string
-	port string
+	port int
 	conn net.Conn
 }
 
-func NewClient(host string, port string) *Client {
+func NewClient(host string, port int) *Client {
 	return &Client{
 		host: host,
 		port: port,
@@ -22,7 +22,7 @@ func NewClient(host string, port string) *Client {
 }
 
 func (c *Client) Connect(ch chan string) error {
-	tcpAddr, err := net.ResolveTCPAddr("tcp", fmt.Sprintf("%s:%s", c.host, c.port))
+	tcpAddr, err := net.ResolveTCPAddr("tcp", fmt.Sprintf("%s:%d", c.host, c.port))
 	if err != nil {
 		return err
 	}

@@ -3,6 +3,7 @@ package server
 import (
 	"bufio"
 	"fmt"
+	"github.com/xkarasb/TicTacToe/pkg/transport"
 	"net"
 	"strings"
 )
@@ -20,7 +21,7 @@ func NewGameServer(host string, port int) *GameServer {
 	}
 }
 
-func (s *GameServer) StartServer(cmd chan string) error {
+func (s *GameServer) StartServer(engineChan chan string) error {
 	tcpAddr, err := net.ResolveTCPAddr("tcp4", fmt.Sprintf("%s:%d", s.host, s.port))
 
 	if err != nil {
@@ -31,15 +32,30 @@ func (s *GameServer) StartServer(cmd chan string) error {
 	if err != nil {
 		return err
 	}
+	return nil
+}
 
-	for {
+func tcpSignalsPipe(engineChan chan string) (tcpChan chan string) {
+	tcpChan = make(chan string)
 
-		s.conn, err = s.listener.Accept()
-		if err != nil {
-			fmt.Println(err)
+	go func() {
+		for {
+			engineChan <- <-tcpChan
 		}
-		handleConnection(s.conn, cmd)
+	}()
+
+	return
+}
+
+func (s *GameServer) AcceptConnection(engineChan chan string) (err error) {
+	s.conn, err = s.listener.Accept()
+	if err != nil {
+		return err
 	}
+	fmt.Println("listener connected")
+	handleConnection(s.conn, tcpSignalsPipe(engineChan))
+	s.conn = nil
+	return nil
 }
 
 func handleConnection(conn net.Conn, ch chan string) {
@@ -49,6 +65,8 @@ func handleConnection(conn net.Conn, ch chan string) {
 		data, err := bufio.NewReader(conn).ReadString('\n')
 		if err != nil {
 			fmt.Println(err)
+			ch <- transport.Disconnect
+			fmt.Println("sent")
 			return
 		}
 		ch <- strings.Replace(data, "\n", "", 1)

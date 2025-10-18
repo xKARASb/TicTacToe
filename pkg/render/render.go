@@ -78,3 +78,7 @@ func (c *Window) InputCoord(isX bool) {
 func (c *Window) IncorrcetInput() {
 	c.drawText("Не вернный ввод!\n")
 }
+
+func (c *Window) RestartRequest() {
+	c.drawText("Вы хотите реванш?\n1. Да\n2. Нет\n")
+}
