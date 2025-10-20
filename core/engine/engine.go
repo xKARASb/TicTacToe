@@ -83,14 +83,15 @@ func StartGame(host string, port int) error {
 		msg := <-clientChan
 		switch msg {
 		case "restart":
-			var restart int
 			player.render.RestartRequest()
-			fmt.Scan(&restart)
+			in := input.GetUserInput()
+			restart, err := in.InputInt(engineExitChan)
+			if err != nil {
+				return err
+			}
 			if restart == 2 {
 				return nil
 			}
-		case transport.Disconnect:
-			break
 		}
 
 	}
@@ -100,6 +101,7 @@ func JoinGame(host string, port int) error {
 	clnt := client.NewClient(host, port)
 
 	serverChan := make(chan string)
+	engineExitChan := make(chan struct{})
 	errChan := make(chan error)
 
 	go func() {
@@ -131,10 +133,14 @@ func JoinGame(host string, port int) error {
 		}
 
 		player.mark = mark
-		Proccess(serverChan, errChan, make(chan struct{}), player)
-		var restart int
+		Proccess(serverChan, errChan, engineExitChan, player)
+
 		player.render.RestartRequest()
-		fmt.Scan(&restart)
+		in := input.GetUserInput()
+		restart, err := in.InputInt(engineExitChan)
+		if err != nil {
+			return err
+		}
 		if restart == 2 {
 			err = player.buddy.Send(transport.Disconnect)
 			if err != nil {
@@ -249,10 +255,8 @@ func UserInput(turn *bool, field *[3][3]string, player *Player, errChan chan err
 				player.render.IncorrcetInput()
 				continue
 			}
-			fmt.Println("X", x)
 			player.render.InputCoord(false)
 			y, err := in.InputInt(exitChan)
-			fmt.Println("Y", x)
 			if err != nil {
 				if err == fmt.Errorf("exit input") {
 					return false
