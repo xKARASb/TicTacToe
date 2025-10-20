@@ -8,7 +8,7 @@ import (
 	"strconv"
 )
 
-func inputWithCancel(cancelChan chan struct{}) string {
+func inputWithCancel(cancelChan chan struct{}) (string, error) {
 	pr, pw := io.Pipe()
 	stdChan := make(chan string)
 
@@ -35,20 +35,26 @@ func inputWithCancel(cancelChan chan struct{}) string {
 		select {
 		case <-cancelChan:
 			pw.Write([]byte("EXIT\n"))
-			return ""
+			return "", fmt.Errorf("exit input")
 		case msg := <-stdChan:
-			return msg
+			return msg, nil
 		}
 	}
 
 }
 
 func InputInt(cancel chan struct{}) (int, error) {
-	raw_i := inputWithCancel(cancel)
+	raw_i, err := inputWithCancel(cancel)
+	if err != nil {
+		return 0, err
+	}
 	return strconv.Atoi(raw_i)
 }
 func InputString(cancel chan struct{}) (string, error) {
-	raw_i := inputWithCancel(cancel)
+	raw_i, err := inputWithCancel(cancel)
+	if err != nil {
+		return "", err
+	}
 	if raw_i == "" {
 		return "", fmt.Errorf("empty string")
 	}
