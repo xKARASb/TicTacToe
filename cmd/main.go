@@ -14,7 +14,7 @@ func main() {
 	fmt.Scan(&choice)
 	switch choice {
 	case 1:
-		err := engine.StartGame("localhost", 50050)
+		err := engine.StartGame("localhost", 0)
 		if err != nil {
 			fmt.Println(err)
 		}
