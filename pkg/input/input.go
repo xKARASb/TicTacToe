@@ -57,7 +57,7 @@ func (i *userInput) inputWithCancel(cancelChan chan struct{}) (string, error) {
 			i.pw.Write([]byte("EXIT\n"))
 			return "", fmt.Errorf("exit input")
 		case msg := <-stdChan:
-			return strings.TrimSuffix(msg, "\n"), nil
+			return strings.TrimSuffix(strings.TrimSuffix(msg, "\n"), "\r"), nil
 		}
 	}
 
