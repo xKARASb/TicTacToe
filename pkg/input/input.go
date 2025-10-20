@@ -6,52 +6,72 @@ import (
 	"io"
 	"os"
 	"strconv"
+	"strings"
+	"sync"
 )
 
-func inputWithCancel(cancelChan chan struct{}) (string, error) {
-	pr, pw := io.Pipe()
+type userInput struct {
+	pr *io.PipeReader
+	pw *io.PipeWriter
+}
+
+var (
+	in   *userInput
+	once sync.Once
+)
+
+func GetUserInput() *userInput {
+	once.Do(func() {
+		pr, pw := io.Pipe()
+		go func() {
+			io.Copy(pw, os.Stdin)
+		}()
+		in = &userInput{
+			pr, pw,
+		}
+	})
+	return in
+}
+
+func (i *userInput) inputWithCancel(cancelChan chan struct{}) (string, error) {
 	stdChan := make(chan string)
 
 	go func() {
-		io.Copy(pw, os.Stdin)
-	}()
-
-	go func() {
-		reader := bufio.NewReader(pr)
+		reader := bufio.NewReader(i.pr)
 		val, err := reader.ReadString('\n')
-
 		if err != nil {
 			stdChan <- ""
+			return
 		}
 
-		if val == "EXIT" {
+		if val == "EXIT\n" {
 			stdChan <- ""
+			return
 		}
 		stdChan <- val
 
 	}()
-
 	for {
 		select {
 		case <-cancelChan:
-			pw.Write([]byte("EXIT\n"))
+			i.pw.Write([]byte("EXIT\n"))
 			return "", fmt.Errorf("exit input")
 		case msg := <-stdChan:
-			return msg, nil
+			return strings.TrimSuffix(msg, "\n"), nil
 		}
 	}
 
 }
 
-func InputInt(cancel chan struct{}) (int, error) {
-	raw_i, err := inputWithCancel(cancel)
+func (i *userInput) InputInt(cancel chan struct{}) (int, error) {
+	raw_i, err := i.inputWithCancel(cancel)
 	if err != nil {
 		return 0, err
 	}
 	return strconv.Atoi(raw_i)
 }
-func InputString(cancel chan struct{}) (string, error) {
-	raw_i, err := inputWithCancel(cancel)
+func (i *userInput) InputString(cancel chan struct{}) (string, error) {
+	raw_i, err := i.inputWithCancel(cancel)
 	if err != nil {
 		return "", err
 	}
