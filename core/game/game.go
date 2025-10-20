@@ -1,5 +1,9 @@
 package game
 
+var (
+	Marks = [2]string{"X", "O"}
+)
+
 func CheckResult(field *[3][3]string) string {
 	var (
 		isDraw = true

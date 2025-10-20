@@ -12,7 +12,7 @@ type Window struct {
 }
 
 func NewWindow() *Window {
-	if runtime.GOOS == "Operating System: windows" {
+	if runtime.GOOS == "windows" {
 		return &Window{
 			clearWindows,
 		}
@@ -34,8 +34,8 @@ func clearUnix() {
 	cmd.Run()
 }
 
-func (*Window) DrawField(field [3][3]string, turn bool) {
-	fmt.Println("\n    1   2   3")
+func (*Window) DrawField(field [3][3]string, player string) {
+	fmt.Printf("\n%s    1   2   3\n", player)
 	for i, row := range field {
 		fmt.Printf("  -------------\n")
 		fmt.Printf("%d ", i+1)
@@ -49,13 +49,36 @@ func (*Window) DrawField(field [3][3]string, turn bool) {
 		fmt.Println("|")
 	}
 	fmt.Println("  -------------")
-	if turn {
-		fmt.Printf("Твой ход!\nКуда ставишь? ")
-	} else {
-		fmt.Printf("Ход противника\n")
-	}
-
 }
-func (*Window) DrawText(text string) {
+func (*Window) drawText(text string) {
 	fmt.Print(text)
+}
+
+func (c *Window) Victory() {
+	c.drawText("Победа!\n")
+}
+func (c *Window) Loose() {
+	c.drawText("Проигрыш(\n")
+}
+func (c *Window) Draw() {
+	c.drawText("Ничья...\n")
+}
+func (c *Window) Turn() {
+	c.drawText("Твой ход!\n")
+}
+
+func (c *Window) InputCoord(isX bool) {
+	if isX {
+		c.drawText("Введи ряд: ")
+	} else {
+		c.drawText("Введи столбец: ")
+	}
+}
+
+func (c *Window) IncorrcetInput() {
+	c.drawText("Не вернный ввод!\n")
+}
+
+func (c *Window) RestartRequest() {
+	c.drawText("Вы хотите реванш?\n1. Да\n2. Нет\n")
 }
