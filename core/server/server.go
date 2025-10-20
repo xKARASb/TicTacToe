@@ -3,9 +3,10 @@ package server
 import (
 	"bufio"
 	"fmt"
-	"github.com/xkarasb/TicTacToe/pkg/transport"
 	"net"
 	"strings"
+
+	"github.com/xkarasb/TicTacToe/pkg/transport"
 )
 
 type GameServer struct {
@@ -52,7 +53,6 @@ func (s *GameServer) AcceptConnection(engineChan chan string) (err error) {
 	if err != nil {
 		return err
 	}
-	fmt.Println("listener connected")
 	handleConnection(s.conn, tcpSignalsPipe(engineChan))
 	s.conn = nil
 	return nil
@@ -66,7 +66,6 @@ func handleConnection(conn net.Conn, ch chan string) {
 		if err != nil {
 			fmt.Println(err)
 			ch <- transport.Disconnect
-			fmt.Println("sent")
 			return
 		}
 		ch <- strings.Replace(data, "\n", "", 1)

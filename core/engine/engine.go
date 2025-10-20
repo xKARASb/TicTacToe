@@ -51,15 +51,11 @@ func StartGame(host string, port int) error {
 
 	go func() {
 		for {
-			fmt.Println("waiting accepting")
 			err := srv.AcceptConnection(clientChan)
-			fmt.Println("end waiting accepting")
 			if err != nil {
 				fmt.Println("Accept Error", err)
 			}
-			fmt.Println("sending to exit chan")
 			engineExitChan <- struct{}{}
-			fmt.Println("sended")
 		}
 	}()
 
@@ -70,7 +66,6 @@ func StartGame(host string, port int) error {
 	}
 
 	for {
-		fmt.Println(srv.IsConnected())
 		if !srv.IsConnected() {
 			continue
 		}
@@ -82,15 +77,11 @@ func StartGame(host string, port int) error {
 		if err != nil {
 			return err
 		}
-		fmt.Println("mark")
 
 		player.mark = firstMark
-		fmt.Println("start proccessing")
 		Proccess(clientChan, errChan, engineExitChan, player)
-		fmt.Println("end proccessing")
 
 		msg := <-clientChan
-		fmt.Println("тут", msg)
 		switch msg {
 		case "restart":
 			var restart int
@@ -100,7 +91,6 @@ func StartGame(host string, port int) error {
 				return nil
 			}
 		case transport.Disconnect:
-			//👍
 			break
 		}
 
