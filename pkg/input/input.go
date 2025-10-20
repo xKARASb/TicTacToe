@@ -2,15 +2,15 @@ package input
 
 import (
 	"bufio"
+	"fmt"
 	"io"
 	"os"
+	"strconv"
 )
 
-type UserInput struct{}
-
-func (*UserInput) inputWithCancel(cancelChan chan string) string {
+func inputWithCancel(cancelChan chan struct{}) string {
 	pr, pw := io.Pipe()
-	stdChan := make(chan string, 0)
+	stdChan := make(chan string)
 
 	go func() {
 		io.Copy(pw, os.Stdin)
@@ -43,6 +43,14 @@ func (*UserInput) inputWithCancel(cancelChan chan string) string {
 
 }
 
-func (*UserInput) InputInt() (int, error) {
-	return 0, nil
+func InputInt(cancel chan struct{}) (int, error) {
+	raw_i := inputWithCancel(cancel)
+	return strconv.Atoi(raw_i)
+}
+func InputString(cancel chan struct{}) (string, error) {
+	raw_i := inputWithCancel(cancel)
+	if raw_i == "" {
+		return "", fmt.Errorf("empty string")
+	}
+	return raw_i, nil
 }
