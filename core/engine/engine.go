@@ -1,14 +1,13 @@
 package engine
 
 import (
-	"bufio"
 	"fmt"
 	"math/rand"
-	"os"
 
 	"github.com/xkarasb/TicTacToe/core/client"
 	"github.com/xkarasb/TicTacToe/core/game"
 	"github.com/xkarasb/TicTacToe/core/server"
+	"github.com/xkarasb/TicTacToe/pkg/input"
 	"github.com/xkarasb/TicTacToe/pkg/render"
 	"github.com/xkarasb/TicTacToe/pkg/transport"
 )
@@ -161,7 +160,7 @@ func Proccess(ch chan string, errCh chan error, exitChan chan struct{}, player *
 	}
 	player.render.DrawField(field, player.mark)
 	if turn {
-		if UserInput(&turn, &field, player, errCh, exitChan) {
+		if !UserInput(&turn, &field, player, errCh, exitChan) {
 			return
 		}
 		player.render.Clear()
@@ -198,7 +197,7 @@ func Proccess(ch chan string, errCh chan error, exitChan chan struct{}, player *
 						errCh <- err
 					}
 				case "ongoing":
-					if UserInput(&turn, &field, player, errCh, exitChan) {
+					if !UserInput(&turn, &field, player, errCh, exitChan) {
 						return
 					}
 					player.render.Clear()
@@ -232,44 +231,52 @@ func Proccess(ch chan string, errCh chan error, exitChan chan struct{}, player *
 	}
 }
 
-func UserInput(turn *bool, field *[3][3]string, player *Player, errChan chan error, exitChan chan struct{}) bool {
-	inputChan := make(chan [2]int)
-
-	f := func(inputChan chan [2]int) {
-		reader := bufio.NewReader(os.Stdin)
-		var x, y int
-		player.render.Turn()
-		player.render.InputCoord(true)
-		fmt.Fscan(reader, &x)
-		player.render.InputCoord(false)
-		fmt.Fscan(reader, &y)
-		x--
-		y--
-		inputChan <- [2]int{x, y}
-
-	}
-
-	go f(inputChan)
-
+func UserInput(turn *bool, field *[3][3]string, player *Player, errChan chan error, exitChan chan struct{}) (isSuccess bool) {
+	in := input.GetUserInput()
 	for {
 		select {
 		case <-exitChan:
-			return true
-		case coords := <-inputChan:
-			if game.Validate(field, coords[0], coords[1]) {
-				err := player.buddy.Send(transport.CellMsg(player.mark, coords[0], coords[1]))
+			return false
+		default:
+			player.render.Turn()
+			player.render.InputCoord(true)
+			x, err := in.InputInt(exitChan)
+			if err != nil {
+				if err == fmt.Errorf("exit input") {
+					return false
+				}
+				fmt.Println(err)
+				player.render.IncorrcetInput()
+				continue
+			}
+			fmt.Println("X", x)
+			player.render.InputCoord(false)
+			y, err := in.InputInt(exitChan)
+			fmt.Println("Y", x)
+			if err != nil {
+				if err == fmt.Errorf("exit input") {
+					return false
+				}
+				fmt.Println(err)
+				player.render.IncorrcetInput()
+				continue
+			}
+
+			x--
+			y--
+			if game.Validate(field, x, y) {
+				err := player.buddy.Send(transport.CellMsg(player.mark, x, y))
+
 				if err != nil {
 					errChan <- err
 				}
 
-				field[coords[0]][coords[1]] = player.mark
+				field[x][y] = player.mark
 				*turn = false
-				return false
+				return true
 			} else {
 				player.render.IncorrcetInput()
-				go f(inputChan)
 			}
 		}
-
 	}
 }
