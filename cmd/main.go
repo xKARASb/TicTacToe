@@ -23,17 +23,19 @@ func main() {
 			fmt.Println(err)
 		}
 	case 2:
-		fmt.Println("Введите адресс хоста:")
-		address, err := in.InputString(make(chan struct{}))
-		if err != nil {
-			panic(err)
-		}
-		parsedAddress := strings.Split(address, ":")
-		host := parsedAddress[0]
-		port, _ := strconv.Atoi(parsedAddress[1])
-		err = engine.JoinGame(host, port)
-		if err != nil {
-			fmt.Println(err)
+		for {
+			fmt.Println("Введите адрес хоста:")
+			address, err := in.InputString(make(chan struct{}))
+			if err != nil {
+				panic(err)
+			}
+			parsedAddress := strings.Split(address, ":")
+			host := parsedAddress[0]
+			port, _ := strconv.Atoi(parsedAddress[1])
+			err = engine.JoinGame(host, port)
+			if err != nil {
+				fmt.Println(err)
+			}
 		}
 	}
 }
