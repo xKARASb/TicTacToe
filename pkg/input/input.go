@@ -2,6 +2,7 @@ package input
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -9,6 +10,8 @@ import (
 	"strings"
 	"sync"
 )
+
+var ExitInputError = errors.New("exit input")
 
 type userInput struct {
 	pr *io.PipeReader
@@ -55,7 +58,7 @@ func (i *userInput) inputWithCancel(cancelChan chan struct{}) (string, error) {
 		select {
 		case <-cancelChan:
 			i.pw.Write([]byte("EXIT\n"))
-			return "", fmt.Errorf("exit input")
+			return "", ExitInputError
 		case msg := <-stdChan:
 			return strings.TrimSuffix(strings.TrimSuffix(msg, "\n"), "\r"), nil
 		}
