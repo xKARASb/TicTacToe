@@ -1,15 +1,15 @@
 package engine
 
 import (
+	"errors"
 	"fmt"
-	"math/rand"
-
 	"github.com/xkarasb/TicTacToe/core/client"
 	"github.com/xkarasb/TicTacToe/core/game"
 	"github.com/xkarasb/TicTacToe/core/server"
 	"github.com/xkarasb/TicTacToe/pkg/input"
 	"github.com/xkarasb/TicTacToe/pkg/render"
 	"github.com/xkarasb/TicTacToe/pkg/transport"
+	"math/rand"
 )
 
 type Player struct {
@@ -48,21 +48,25 @@ func StartGame(host string, port int) error {
 		}
 	}()
 
-	go func() {
-		for {
-			err := srv.AcceptConnection(clientChan)
-			if err != nil {
-				fmt.Println("Accept Error", err)
-			}
-			engineExitChan <- struct{}{}
-		}
-	}()
-
 	player := &Player{
 		mark:   "",
 		buddy:  srv,
 		render: render.NewWindow(),
 	}
+
+	go func() {
+		for {
+			err := srv.AcceptConnection(clientChan)
+			if err != nil {
+				errChan <- fmt.Errorf("Accept Error %v", err)
+			}
+			engineExitChan <- struct{}{}
+			clientChan <- transport.Disconnect
+
+			player.render.Clear()
+			fmt.Println(srv.GetAddr())
+		}
+	}()
 
 	for {
 		if !srv.IsConnected() {
@@ -78,9 +82,10 @@ func StartGame(host string, port int) error {
 		}
 
 		player.mark = firstMark
-		Proccess(clientChan, errChan, engineExitChan, player)
+		Process(clientChan, errChan, engineExitChan, player)
 
 		msg := <-clientChan
+
 		switch msg {
 		case "restart":
 			player.render.RestartRequest()
@@ -133,7 +138,7 @@ func JoinGame(host string, port int) error {
 		}
 
 		player.mark = mark
-		Proccess(serverChan, errChan, engineExitChan, player)
+		Process(serverChan, errChan, engineExitChan, player)
 
 		player.render.RestartRequest()
 		in := input.GetUserInput()
@@ -156,7 +161,7 @@ func JoinGame(host string, port int) error {
 	}
 }
 
-func Proccess(ch chan string, errCh chan error, exitChan chan struct{}, player *Player) {
+func Process(ch chan string, errCh chan error, exitChan chan struct{}, player *Player) {
 	field := [3][3]string{}
 	player.render.Clear()
 
@@ -248,7 +253,7 @@ func UserInput(turn *bool, field *[3][3]string, player *Player, errChan chan err
 			player.render.InputCoord(true)
 			x, err := in.InputInt(exitChan)
 			if err != nil {
-				if err == fmt.Errorf("exit input") {
+				if errors.Is(err, input.ExitInputError) {
 					return false
 				}
 				fmt.Println(err)
@@ -258,7 +263,7 @@ func UserInput(turn *bool, field *[3][3]string, player *Player, errChan chan err
 			player.render.InputCoord(false)
 			y, err := in.InputInt(exitChan)
 			if err != nil {
-				if err == fmt.Errorf("exit input") {
+				if errors.Is(err, input.ExitInputError) {
 					return false
 				}
 				fmt.Println(err)
