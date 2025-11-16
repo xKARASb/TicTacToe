@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"net"
 	"strings"
-
-	"github.com/xkarasb/TicTacToe/pkg/transport"
 )
 
 type GameServer struct {
@@ -64,8 +62,6 @@ func handleConnection(conn net.Conn, ch chan string) {
 	for {
 		data, err := bufio.NewReader(conn).ReadString('\n')
 		if err != nil {
-			fmt.Println(err)
-			ch <- transport.Disconnect
 			return
 		}
 		ch <- strings.Replace(data, "\n", "", 1)
